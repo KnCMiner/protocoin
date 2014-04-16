@@ -120,21 +120,23 @@ class BitcoinBasicClient(object):
                 raise NodeDisconnectException("Node disconnected.")
             
             self.buffer.write(data)
-            data = self.receive_message()
 
-            # Check if the message is still incomplete to parse
-            if data is None:
-                continue
+            while True:
+                data = self.receive_message()
 
-            # Check for the header and message
-            message_header, message = data
-            if not message:
-                continue
+                # Check if the message is still incomplete to parse
+                if data is None:
+                    break
 
-            handle_func_name = "handle_" + message_header.command
-            handle_func = getattr(self, handle_func_name, None)
-            if handle_func:
-                handle_func(message_header, message)
+                # Check for the header and message
+                message_header, message = data
+                if not message:
+                    continue
+
+                handle_func_name = "handle_" + message_header.command
+                handle_func = getattr(self, handle_func_name, None)
+                if handle_func:
+                    handle_func(message_header, message)
 
 class BitcoinClient(BitcoinBasicClient):
     """This class implements all the protocol rules needed
